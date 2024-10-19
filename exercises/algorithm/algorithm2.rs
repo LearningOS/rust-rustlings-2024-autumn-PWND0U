@@ -2,11 +2,9 @@
 	double linked list reverse
 	This problem requires you to reverse a doubly linked list
 */
-// I AM NOT DONE
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
-use std::vec::*;
 
 #[derive(Debug)]
 struct Node<T> {
@@ -24,6 +22,7 @@ impl<T> Node<T> {
         }
     }
 }
+
 #[derive(Debug)]
 struct LinkedList<T> {
     length: u32,
@@ -59,11 +58,11 @@ impl<T> LinkedList<T> {
         self.length += 1;
     }
 
-    pub fn get(&mut self, index: i32) -> Option<&T> {
-        self.get_ith_node(self.start, index)
+    pub fn get(&self, index: i32) -> Option<&T> {
+        self.get_ith_node(self.start, index as usize)
     }
 
-    fn get_ith_node(&mut self, node: Option<NonNull<Node<T>>>, index: i32) -> Option<&T> {
+    fn get_ith_node(&self, node: Option<NonNull<Node<T>>>, index: usize) -> Option<&T> {
         match node {
             None => None,
             Some(next_ptr) => match index {
@@ -72,27 +71,39 @@ impl<T> LinkedList<T> {
             },
         }
     }
-	pub fn reverse(&mut self){
-		// TODO
-	}
-}
 
-impl<T> Display for LinkedList<T>
-where
-    T: Display,
-{
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        match self.start {
-            Some(node) => write!(f, "{}", unsafe { node.as_ref() }),
-            None => Ok(()),
+    pub fn reverse(&mut self) {
+        let mut current = self.start.take();
+        let mut prev = None;
+        while let Some(node) = current {
+            let next = unsafe { (*node.as_ptr()).next };
+            unsafe { (*node.as_ptr()).next = prev; (*node.as_ptr()).prev = next };
+            prev = Some(node);
+            current = next;
+        }
+        self.start = prev;
+        self.end = None;
+        let mut temp = self.start;
+        while let Some(node) = temp {
+            self.end = Some(node);
+            temp = unsafe { (*node.as_ptr()).next };
         }
     }
 }
 
-impl<T> Display for Node<T>
-where
-    T: Display,
-{
+impl<T: Display> Display for LinkedList<T> {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        let mut values = Vec::new();
+        let mut current = self.start;
+        while let Some(node) = current {
+            values.push(format!("{}", unsafe { &(*node.as_ptr()).val }));
+            current = unsafe { (*node.as_ptr()).next };
+        }
+        write!(f, "[{}]", values.join(", "))
+    }
+}
+
+impl<T: Display> Display for Node<T> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self.next {
             Some(node) => write!(f, "{}, {}", self.val, unsafe { node.as_ref() }),

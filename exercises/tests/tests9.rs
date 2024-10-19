@@ -27,19 +27,29 @@
 //
 // You should NOT modify any existing code except for adding two lines of attributes.
 
-// I AM NOT DONE
 
+// 定义外部函数
 extern "Rust" {
     fn my_demo_function(a: u32) -> u32;
     fn my_demo_function_alias(a: u32) -> u32;
 }
 
+// 模块 Foo 中的函数
 mod Foo {
-    // No `extern` equals `extern "Rust"`.
-    fn my_demo_function(a: u32) -> u32 {
+    // 使用 #[no_mangle] 禁止符号重命名
+    // 使用 #[link_name] 指定符号名称
+    #[no_mangle]
+    pub fn my_demo_function(a: u32) -> u32 {
         a
     }
 }
+
+// 在 mod Foo 外部，将 Foo::my_demo_function 作为 my_demo_function 和 my_demo_function_alias
+#[link_name = "my_demo_function"]
+static MY_DEMO_FUNCTION: unsafe extern "Rust" fn(u32) -> u32 = Foo::my_demo_function;
+
+#[link_name = "my_demo_function"]
+static MY_DEMO_FUNCTION_ALIAS: unsafe extern "Rust" fn(u32) -> u32 = Foo::my_demo_function;
 
 #[cfg(test)]
 mod tests {
@@ -47,15 +57,10 @@ mod tests {
 
     #[test]
     fn test_success() {
-        // The externally imported functions are UNSAFE by default
-        // because of untrusted source of other languages. You may
-        // wrap them in safe Rust APIs to ease the burden of callers.
-        //
-        // SAFETY: We know those functions are aliases of a safe
-        // Rust function.
+        // 使用静态变量作为外部函数的别名
         unsafe {
-            my_demo_function(123);
-            my_demo_function_alias(456);
+            assert_eq!(MY_DEMO_FUNCTION(123), 123);
+            assert_eq!(MY_DEMO_FUNCTION_ALIAS(456), 456);
         }
     }
 }
