@@ -29,6 +29,16 @@ impl ReportCard {
         format!("{} ({}) - achieved a grade of {}",
             &self.student_name, &self.student_age, &self.grade)
     }
+    pub fn print2(&self) -> String {
+        let mut g = String::new();
+        if &self.grade > 2{
+            g = "A+".to_string()
+        }else{
+            g = "A".to_string()
+        }
+        format!("{} ({}) - achieved a grade of {}",
+            &self.student_name, &self.student_age, &self.grade)
+    }
 }
 
 #[cfg(test)]
@@ -57,7 +67,7 @@ mod tests {
             student_age: 11,
         };
         assert_eq!(
-            report_card.print(),
+            report_card.print2(),
             "Gary Plotter (11) - achieved a grade of A+"
         );
     }
