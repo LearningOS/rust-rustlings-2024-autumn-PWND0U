@@ -3,10 +3,8 @@
 	This problem requires you to implement a basic interface for a binary tree
 */
 
-//I AM NOT DONE
 use std::cmp::Ordering;
 use std::fmt::Debug;
-
 
 #[derive(Debug)]
 struct TreeNode<T>
@@ -37,36 +35,60 @@ where
             right: None,
         }
     }
+
+    // Insert a value into the subtree rooted at this node
+    fn insert_recursive(&mut self, value: T) {
+        match value.cmp(&self.value) {
+            Ordering::Less => {
+                if self.left.is_none() {
+                    self.left = Some(Box::new(TreeNode::new(value)));
+                } else {
+                    self.left.as_mut().unwrap().insert_recursive(value);
+                }
+            }
+            Ordering::Greater => {
+                if self.right.is_none() {
+                    self.right = Some(Box::new(TreeNode::new(value)));
+                } else {
+                    self.right.as_mut().unwrap().insert_recursive(value);
+                }
+            }
+            Ordering::Equal => {} // Do nothing, duplicates are not allowed in a standard BST
+        }
+    }
 }
 
 impl<T> BinarySearchTree<T>
 where
     T: Ord,
 {
-
     fn new() -> Self {
         BinarySearchTree { root: None }
     }
 
     // Insert a value into the BST
     fn insert(&mut self, value: T) {
-        //TODO
+        if self.root.is_none() {
+            self.root = Some(Box::new(TreeNode::new(value)));
+        } else {
+            self.root.as_mut().unwrap().insert_recursive(value);
+        }
     }
 
     // Search for a value in the BST
-    fn search(&self, value: T) -> bool {
-        //TODO
-        true
+    fn search_recursive(&self, value: &T, node: &Option<Box<TreeNode<T>>>) -> bool {
+        match node {
+            Some(n) => match value.cmp(&n.value) {
+                Ordering::Less => self.search_recursive(value, &n.left),
+                Ordering::Greater => self.search_recursive(value, &n.right),
+                Ordering::Equal => true,
+            },
+            None => false,
+        }
     }
-}
 
-impl<T> TreeNode<T>
-where
-    T: Ord,
-{
-    // Insert a node into the tree
-    fn insert(&mut self, value: T) {
-        //TODO
+    fn search(&self, value: T) -> bool {
+        self.search_recursive(&value, &self.root)
     }
 }
 
